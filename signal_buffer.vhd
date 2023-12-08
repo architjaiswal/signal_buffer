@@ -55,7 +55,13 @@ architecture Behavioral of signal_buffer is
         );
     end component;
 
-    signal has_complete_window : std_logic;
+    signal has_complete_window : std_logic; -- It means buffer has a fresh window of elements waiting to be read. Full will not be asserted in the case where wr_en and rd_en both are ON and buffer is simultanously loaded with new elements
+
+    signal full_internal       : std_logic; -- This will be be used to ignore the inputs if the buffer is full and not increment the counter
+    signal empty_internal       : std_logic; -- This will be be used to ignore subtracting the counter if the buffer is empty
+
+    signal valid_wr : std_logic;
+    signal valid_rd : std_logic;
 
 begin
 
@@ -90,13 +96,13 @@ begin
                 end if;
 
             elsif (rising_edge(clk)) then
-                if (wr_en = '1') then
+                if (wr_en = '1' and full_internal = '0') then
                     data_array(0) <= wr_data;
                 end if;
 
                 if (NUM_ELEMENTS > 1) then
                     for i in 0 to NUM_ELEMENTS-2 loop
-                        if (wr_en = '1') then
+                        if (wr_en = '1' and full_internal = '0') then
                             data_array(i+1) <= data_array(i);
                         end if;
                     end loop;
@@ -119,13 +125,21 @@ begin
     port map(
         clk => clk,
         rst => rst,
-        add_one => wr_en,
-        subtract_one => rd_en,
+        add_one => valid_wr,
+        subtract_one => valid_rd,
         output => has_complete_window
     );
 
     empty <= not has_complete_window;
+    empty_internal <= not has_complete_window;
+
     full  <= has_complete_window and not rd_en; -- if rd_en is asserted then the data will be read right away and the buffer will be not full. 
-    -- full <= has_complete_windows; This will only give half of the bandwidth because when the buffer is full, the FIFO will stop and continue until it is not full. This will keep oscilating and will be slower.  
+    -- full <= has_complete_windows; This will only give half of the bandwidth because when the buffer is full, the FIFO will stop and continue until it is not full. This will keep oscilating and will be slower. 
+    full_internal <= has_complete_window and not rd_en; -- This is a copy of "full" because old VHDL does not allows outputs to be read inside the design
+
+    -- Make sure that the read and write signals are valid before sending them to the counter otherwise the flags will be wrong
+    valid_wr <= wr_en and not full_internal;  
+    valid_rd <= rd_en and not empty_internal;
+    
 
 end Behavioral;

@@ -99,68 +99,68 @@ begin
 ------------------------------------------------------------------------------------------------------
 
 
--------------- TEST 2 -------------------------------------------------------------------------------
+-------------- TEST 2 --------------------------------------------------------------------------
     -- Test all the 128 inputs without any break and see if the full flag shows up
 
     -- PROBLEM: count keeps decreasing even when both read and write are enabled
 
-    process 
-    begin
+    -- process 
+    -- begin
 
-        rst <= '1';
-        wait until rising_edge(clk);
-        wait until rising_edge(clk);
+    --     rst <= '1';
+    --     wait until rising_edge(clk);
+    --     wait until rising_edge(clk);
 
-        rst <= '0';
-        wait until rising_edge(clk);
+    --     rst <= '0';
+    --     wait until rising_edge(clk);
         
-        wr_en <= '1';
-        for i in 0 to 2*NUM_ELEMENTS+2 loop 
-        -- for i in 0 to NUM_ELEMENTS-1 loop 
-            if (full_flag = '1') then
-                -- wr_en <= '0';
-            end if;
+    --     wr_en <= '1';
+    --     for i in 0 to 2*NUM_ELEMENTS+2 loop 
+    --     -- for i in 0 to NUM_ELEMENTS-1 loop 
+    --         if (full_flag = '1') then
+    --             -- wr_en <= '0';
+    --         end if;
             
-            -- input <= std_logic_vector(to_unsigned(i, WIDTH));
-            wait until rising_edge(clk);
-        end loop;
+    --         -- input <= std_logic_vector(to_unsigned(i, WIDTH));
+    --         wait until rising_edge(clk);
+    --     end loop;
 
-        -- wr_en <= '0';
+    --     -- wr_en <= '0';
 
-        for i in 0 to 2*NUM_ELEMENTS+5 loop
+    --     for i in 0 to 2*NUM_ELEMENTS+5 loop
 
-            rd_en <= '1';
-            -- report" Jai Shree Ram";
-            wait until rising_edge(clk);
-        end loop;
+    --         rd_en <= '1';
+    --         -- report" Jai Shree Ram";
+    --         wait until rising_edge(clk);
+    --     end loop;
 
-        clk_en <= '0'; -- Stop the clock
-        report "Test1 completed.";
-        wait;
+    --     clk_en <= '0'; -- Stop the clock
+    --     report "Test2 completed.";
+    --     wait;
 
-    end process;
+    -- end process;
 
-    process(full_flag)
-    begin
-        if (rising_edge(full_flag)) then
-            report "full flag showed up";
-        end if;
-    end process;
+    -- process(full_flag)
+    -- begin
+    --     if (rising_edge(full_flag)) then
+    --         report "full flag showed up";
+    --     end if;
+    -- end process;
 
-    -- Adding another process to continue incrementing the input
-    process
-        variable i : unsigned(WIDTH-1 downto 0) := (others => '0');
-    begin
+    -- -- Adding another process to continue incrementing the input
+    -- process
+    --     variable i : unsigned(WIDTH-1 downto 0) := (others => '0');
+    -- begin
 
-        input <= std_logic_vector(i);
-        i := i + 1;
+    --     input <= std_logic_vector(i);
+    --     i := i + 1;
 
-        if (clk_en = '0') then
-            wait;
-        end if;
-        wait until rising_edge(clk);
+    --     if (clk_en = '0') then
+    --         wait;
+    --     end if;
+    --     wait until rising_edge(clk);
 
-    end process;
+    -- end process;
 
 ------------------------------------------------------------------------------------------------------
 
@@ -211,42 +211,43 @@ begin
 -------------- TEST 4 -------------------------------------------------------------------------------
     -- Alternate write and alternate reads
 
-    -- process
-    -- begin
+    process
+    begin
 
-    --     rst <= '1';
-    --     wait until rising_edge(clk);
-    --     wait until rising_edge(clk);
+        rst <= '1';
+        wait until rising_edge(clk);
+        wait until rising_edge(clk);
 
-    --     rst <= '0';
-    --     wait until rising_edge(clk);
+        rst <= '0';
+        wait until rising_edge(clk);
         
-    --     -- wr_en <= '1';
-    --     -- for i in 0 to NUM_ELEMENTS-1 loop 
-    --     for i in 0 to 350 loop 
-    --         input <= std_logic_vector(to_unsigned(i, WIDTH));
-    --         if (i mod 2 = 0) then
-    --             wr_en <= '1';
-    --             rd_en <= '0';
-    --         else
-    --             wr_en <= '0';
-    --             rd_en <= '1';
-    --         end if;
-    --         wait until rising_edge(clk);
-    --     end loop;
+        -- wr_en <= '1';
+        -- for i in 0 to NUM_ELEMENTS-1 loop 
+        for i in 0 to 350 loop 
+            input <= std_logic_vector(to_unsigned(i, WIDTH));
+            if (i mod 2 = 0) then
+                wr_en <= '1';
+                rd_en <= '0';
+            else
+                wr_en <= '0';
+                rd_en <= '1';
+            end if;
+            wait until rising_edge(clk);
+        end loop;
 
-    --     clk_en <= '0'; -- Stop the clock
-    --     report "Test1 completed.";
-    --     wait;
+        clk_en <= '0'; -- Stop the clock
+        report "Test4 completed.";
+        wait;
 
-    -- end process;
+    end process;
 
-    -- process(full_flag)
-    -- begin
-    --     if (rising_edge(full_flag)) then
-    --         report "Wrote all 128 elements and full flag showed up";
-    --     end if;
-    -- end process;
+    process(full_flag)
+    begin
+        if (rising_edge(full_flag)) then
+            report "Wrote all 128 elements and full flag showed up";
+        end if;
+    end process;
+
 ------------------------------------------------------------------------------------------------------
 
 
