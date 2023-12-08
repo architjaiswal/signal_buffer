@@ -6,18 +6,19 @@
 
 -- 2. Whenever the FIFO is ready to give an element, it will assert 'wr_en' and give data to 'wr_data' signal. If the buffer is full then 'full' signal will be set to inform the FIFO that it needs to stop because the buffer is full and data has not been read by the pipeline/datapath. 
 
--- NOTE: 128 elements forms a window of input to the datapath that performs 1-D convolution. Therefore, it is a sliding window buffer. Meaning one element is used multiple times in different pipelines and only one element needs to be evicted to form a "new windows" for another pipeline.  
+-- NOTE: 128 elements forms a window of input to the datapath that performs 1-D convolution. Therefore, it is a sliding window buffer. Meaning one element is used multiple times in different pipelines and only one element needs to be evicted to form a 'new windows' for another pipeline.  
 
 -- 3. Everytime a write occurs from FIFO, a counter will be incremented to know when a window of data is ready for the pipeline to start computation. Empty signal means that the buffer is not yet loaded with "fresh" 128 elements to form a complete window and tells the pipeline that a new window is not ready yet, so do not read anything. 
 
 -- 4. Once the 128 elements are ready, the buffer will set the full flag to tell the FIFO to pause writing and remove the empty flag to tell the pipeline that now it has a complete window loaded (not empty) and the pipeline should consider reading the data in buffer. 
 
--- 5. This buffer passes the entire bit vector (128 elements * 16 bits = 2048 bits) down to the datapath/pipeline. When the pipeline has read the data, it will acknowledge to buffer by setting the rd_en, so buffer knows that the data it contains is now old and it needs to load new elements from the FIFO.  
+-- 5. This buffer passes the entire bit vector (128 elements * 16 bits = 2048 bits) down to the datapath/pipeline. When the pipeline has read the data, it will acknowledge to buffer by setting the 'rd_en', so buffer knows that the data it contains is now old and it needs to load new elements from the FIFO.  
 
--- 6. rd_en will decrement the counter to 127 which will lead to the empty flag and the removal of full flag. Due to this, the FIFO will get notified that now the buffer is not full and it may pull the wr_en to write more data to the buffer.
+-- 6. 'rd_en' will decrement the counter to 127 which will lead to the empty flag and the removal of full flag. Due to this, the FIFO will get notified that now the buffer is not full and it may pull the wr_en to write more data to the buffer.
 
 ----------------------------------------------------------------------------------
 
+-- IMPORTANT : It will over-write the oldest value if write_en is on and the buffer is full
 
 ---------------------- SIGNAL BUFFER Entiry --------------------------------------
 library IEEE;
@@ -66,7 +67,7 @@ begin
     U_NUM_ELEMENTS_GT_0: if NUM_ELEMENTS > 0 generate
         -- Defining an array of elements 
         subtype SIGNAL_WIDTH_RANGE is natural range WIDTH-1 downto 0;
-        type window is array(0 to NUM_ELEMENTS) of std_logic_vector(SIGNAL_WIDTH_RANGE);
+        type window is array(0 to NUM_ELEMENTS-1) of std_logic_vector(SIGNAL_WIDTH_RANGE);
         
         -- Creating an instance of array
         signal data_array : window;
@@ -105,7 +106,7 @@ begin
 
         -- put pipeline inputs into a big vector (i.e., "vectorize")
         U_VECTORIZE : for i in 0 to NUM_ELEMENTS-1 generate
-        vectorized_output((i+1)*WIDTH-1 downto i*WIDTH) <= data_array(i);
+            vectorized_output((i+1)*WIDTH-1 downto i*WIDTH) <= data_array(i);
         end generate;
 
         rd_data <= vectorized_output;
