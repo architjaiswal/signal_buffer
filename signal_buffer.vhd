@@ -18,7 +18,6 @@
 
 ----------------------------------------------------------------------------------
 
--- IMPORTANT : It will over-write the oldest value if write_en is on and the buffer is full
 
 ---------------------- SIGNAL BUFFER Entiry --------------------------------------
 library IEEE;
